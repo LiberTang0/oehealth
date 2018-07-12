@@ -345,7 +345,7 @@
                 <field name="arch" type="xml">
                     <notebook position="inside">
                         <page string="Evaluations">
-                            <field name="evaluation_ids" widget="one2many_list" context="{'default_appointment': active_id}" domain="[('appointment', '=', active_id)"/>
+                            <field name="evaluation_ids" widget="one2many_list" context="{'default_appointment': active_id,'default_patient': patient,'default_doctor': doctor,'default_evaluation_start_date': appointment_date,'default_evaluation_end_date': appointment_date}" domain="[('appointment', '=', active_id)"/>
                         </page>
                     </notebook>
                 </field>

@@ -364,7 +364,6 @@ class OeHealthAppointment(models.Model):
     APPOINTMENT_STATUS = [
             ('Scheduled', 'Scheduled'),
             ('Completed', 'Completed'),
-            ('Invoiced', 'Invoiced'),
         ]
 
     # Automatically detect logged in physician
@@ -403,7 +402,11 @@ class OeHealthAppointment(models.Model):
     comments = fields.Text(string='Comments', readonly=True, states={'Scheduled': [('readonly', False)]})
     patient_status = fields.Selection(PATIENT_STATUS, string='Patient Status', readonly=True, states={'Scheduled': [('readonly', False)]}, default=lambda *a: 'Inpatient')
     state = fields.Selection(APPOINTMENT_STATUS, string='State', readonly=True, default=lambda *a: 'Scheduled')
-
+    invoiced = fields.Boolean(string='Invoiced',default=False)
+    invoice_id = fields.Many2one('account.invoice')
+    currency_id = fields.Many2one('res.currency', string='Currency', related='invoice_id.currency_id')
+    amount = fields.Monetary(string="Total ", related='invoice_id.amount_total')
+    residual = fields.Monetary(string="Amount Due", related='invoice_id.residual')
     _order = "appointment_date desc"
 
     @api.model
@@ -504,8 +507,16 @@ class OeHealthAppointment(models.Model):
                     }
 
                     inv_line_ids = invoice_line_obj.create(curr_invoice_line)
+                acc.update({
+                    'invoice_id': inv_id,
+                })
 
-                self.write({'state': 'Invoiced'})
+                self.invoiced = True
+        action = self.env.ref('account.action_invoice_tree1').read()[0]
+        action['views'] = [(self.env.ref('account.invoice_form').id, 'form')]
+        action['res_id'] = inv_id
+        return action
+        '''
         return {
                 'domain': "[('id','=', " + str(inv_id) + ")]",
                 'name': _('Appointment Invoice'),
@@ -515,6 +526,19 @@ class OeHealthAppointment(models.Model):
                 'type': 'ir.actions.act_window'
         }
         return True
+        '''
+    @api.multi
+    def action_view_invoice(self):
+        for appointment in self:
+            invoice_id = appointment.invoice_id.id
+        if invoice_id:
+            action = self.env.ref('account.action_invoice_tree1').read()[0]
+            action['views'] = [(self.env.ref('account.invoice_form').id, 'form')]
+            action['res_id'] = invoice_id
+        else:
+            action = {'type': 'ir.actions.act_window_close'}
+        return action
+
 
     @api.multi
     def set_to_completed(self):
