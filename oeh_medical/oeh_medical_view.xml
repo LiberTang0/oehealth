@@ -52,7 +52,13 @@
                         <button confirm="Are you sure you want to mark appointment as completed?" name="set_to_completed" states="Scheduled" string="Mark as Completed" type="object" class="oe_highlight" groups="oehealth.group_oeh_medical_physician,oehealth.group_oeh_medical_manager"/>
                         <button confirm="Are you sure you want to create the invoice?"
                           name="action_appointment_invoice_create" string="Consultancy Invoice" type="object" class="oe_highlight" groups="oehealth.group_oeh_medical_physician,oehealth.group_oeh_medical_manager" attrs="{'invisible':[('invoiced','=',True)]}"/>
-                        <field name="state" widget="statusbar" statusbar_visible="Scheduled,Completed" statusbar_colors='{"Scheduled":"blue","Completed":"green"}'/>
+                        <button confirm="Are you sure you want to add a Prescription?"
+                            name="action_prescription_create"
+                            string="Create Prescription"
+                            type="object" class="oe_highlight"
+                            groups="oehealth.group_oeh_medical_physician,oehealth.group_oeh_medical_manager"
+                            states="Completed"/>
+                        <field name="state" widget="statusbar" statusbar_visible="Scheduled,Completed" statusbar_colors='{"Scheduled":"blue","Completed":"green"}' />
                     </header>
                     <sheet>
                       <div class="oe_button_box" name="button_box">

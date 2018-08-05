@@ -404,6 +404,7 @@ class OeHealthAppointment(models.Model):
     state = fields.Selection(APPOINTMENT_STATUS, string='State', readonly=True, default=lambda *a: 'Scheduled')
     invoiced = fields.Boolean(string='Invoiced',default=False)
     invoice_id = fields.Many2one('account.invoice')
+    prescription_id = fields.Many2one('oeh.medical.prescription')
     currency_id = fields.Many2one('res.currency', string='Currency', related='invoice_id.currency_id')
     amount = fields.Monetary(string="Total ", related='invoice_id.amount_total')
     residual = fields.Monetary(string="Amount Due", related='invoice_id.residual')
@@ -543,6 +544,73 @@ class OeHealthAppointment(models.Model):
     @api.multi
     def set_to_completed(self):
         return self.write({'state': 'Completed'})
+    @api.multi
+    def action_prescription_create(self):
+        prescription_obj = self.env["oeh.medical.prescription"]
+        prescription_line_obj = self.env["oeh.medical.prescription.line"]
+        prescription_ids = []
+
+        for acc in self:
+            # Create Invoice
+            if acc.patient:
+                curr_invoice = {
+                    'partner_id': acc.patient.partner_id.id,
+                    'account_id': acc.patient.partner_id.property_account_receivable_id.id,
+                    'patient': acc.patient.id,
+                    'state': 'draft',
+                    'type':'out_invoice',
+                    'date_invoice':acc.appointment_date,
+                    'origin': "Appointment # : " + acc.name,
+                }
+
+                inv_ids = invoice_obj.create(curr_invoice)
+                inv_id = inv_ids.id
+
+                if inv_ids:
+                    prd_account_id = self._default_account()
+                    # Create Invoice line
+                    curr_invoice_line = {
+                        'name':"Consultancy invoice for " + acc.name,
+                        'price_unit': acc.doctor.consultancy_price,
+                        'quantity': 1,
+                        'account_id': prd_account_id,
+                        'invoice_id': inv_id,
+                    }
+
+                    inv_line_ids = invoice_line_obj.create(curr_invoice_line)
+                acc.update({
+                    'invoice_id': inv_id,
+                })
+
+                self.invoiced = True
+        action = self.env.ref('account.action_invoice_tree1').read()[0]
+        action['views'] = [(self.env.ref('account.invoice_form').id, 'form')]
+        action['res_id'] = inv_id
+        return action
+        '''
+        return {
+                'domain': "[('id','=', " + str(inv_id) + ")]",
+                'name': _('Appointment Invoice'),
+                'view_type': 'form',
+                'view_mode': 'tree,form',
+                'res_model': 'account.invoice',
+                'type': 'ir.actions.act_window'
+        }
+        return True
+        '''
+
+    @api.multi
+    def action_view_prescription(self):
+        for appointment in self:
+            invoice_id = appointment.invoice_id.id
+        if invoice_id:
+            action = self.env.ref('account.action_invoice_tree1').read()[0]
+            action['views'] = [(self.env.ref('account.invoice_form').id, 'form')]
+            action['res_id'] = invoice_id
+        else:
+            action = {'type': 'ir.actions.act_window_close'}
+        return action
+
 
 
 # Prescription Management
