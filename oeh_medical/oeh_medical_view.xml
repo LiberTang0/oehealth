@@ -40,7 +40,22 @@
                     </search>
                 </field>
             </record>
-
+            <record id="oeh_medical_prescription_action_form" model="ir.actions.act_window">
+                    <field name="name">Prescriptions</field>
+                    <field name="res_model">oeh.medical.prescription</field>
+                    <field name="view_type">form</field>
+                    <field name="view_mode">form</field>
+                    <field name="domain">[]</field>
+                    <field name="context">{}</field>
+                    <field name="view_id" eval="False"/>
+                    <field name="help" type="html">
+                      <p class="oe_view_nocontent_create">
+                        Click to add a new prescription.
+                      </p><p>
+                        With oeHealth prescription screen, you can add prescriptions, assign to the patient and directly send to pharmacies for assignment of medicines
+                      </p>
+                    </field>
+            </record>
 
             <record model="ir.ui.view" id="oeh_medical_appointment_view">
                 <field name="name">Appointments</field>
@@ -53,11 +68,12 @@
                         <button confirm="Are you sure you want to create the invoice?"
                           name="action_appointment_invoice_create" string="Consultancy Invoice" type="object" class="oe_highlight" groups="oehealth.group_oeh_medical_physician,oehealth.group_oeh_medical_manager" attrs="{'invisible':[('invoiced','=',True)]}"/>
                         <button confirm="Are you sure you want to add a Prescription?"
-                            name="action_prescription_create"
+                            name="%(oeh_medical_prescription_action_form)d"
                             string="Create Prescription"
-                            type="object" class="oe_highlight"
+                            type="action" class="oe_highlight"
                             groups="oehealth.group_oeh_medical_physician,oehealth.group_oeh_medical_manager"
-                            states="Completed"/>
+                            states="Completed"
+                            context="{'default_patient':patient,'default_doctor':doctor,'default_info':comments,'default_appointment_id':active_id}"/>
                         <field name="state" widget="statusbar" statusbar_visible="Scheduled,Completed" statusbar_colors='{"Scheduled":"blue","Completed":"green"}' />
                     </header>
                     <sheet>
@@ -281,6 +297,7 @@
                         <field name="patient"/>
                         <field name="date"/>
                         <field name="doctor"/>
+                        <field name="appointment_id"/>
                         <field name="pharmacy"/>
                         <field name="state"/>
                     </tree>
@@ -324,6 +341,7 @@
                       </p>
                     </field>
             </record>
+
 
             <menuitem action="oeh_medical_prescription_action_tree" id="oeh_medical_prescription_list" parent="oeh_medical_appointment_menu" sequence="3"/>
 

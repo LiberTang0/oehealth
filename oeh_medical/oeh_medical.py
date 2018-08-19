@@ -199,6 +199,29 @@ class OeHealthPatient(models.Model):
         vals['is_patient'] = True
         health_patient = super(OeHealthPatient, self).create(vals)
         return health_patient
+    @api.multi
+    def name_get(self):
+        result = []
+        for record in self:
+            if record.name:
+                name = '[' + str(record.partner_id.mobile) + ']' + ' ' + record.name
+            else:
+                name = record.name
+            result.append((record.id, name))
+        return result
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        if not args:
+            args = []
+        if context is None:
+            context = {}
+        ids = []
+        for record in self:
+            mobile = record.partner_id.mobile
+        if mobile:
+            ids = self.search(cr, user, ['|',('partner_id.mobile','=',mobile),('name','=',name)] + args, limit=limit, context=context)
+        if not ids:
+            ids = self.search(cr, user, [('name',operator,name)] + args, limit=limit, context=context)
+        return self.name_get(cr, user, ids, context)
 
     @api.multi
     def onchange_state(self, state_id):
@@ -404,7 +427,7 @@ class OeHealthAppointment(models.Model):
     state = fields.Selection(APPOINTMENT_STATUS, string='State', readonly=True, default=lambda *a: 'Scheduled')
     invoiced = fields.Boolean(string='Invoiced',default=False)
     invoice_id = fields.Many2one('account.invoice')
-    prescription_id = fields.Many2one('oeh.medical.prescription')
+
     currency_id = fields.Many2one('res.currency', string='Currency', related='invoice_id.currency_id')
     amount = fields.Monetary(string="Total ", related='invoice_id.amount_total')
     residual = fields.Monetary(string="Amount Due", related='invoice_id.residual')
@@ -546,6 +569,15 @@ class OeHealthAppointment(models.Model):
         return self.write({'state': 'Completed'})
     @api.multi
     def action_prescription_create(self):
+        return {
+                'name': _('Prescriptions'),
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'oeh.medical.prescription',
+                'type': 'ir.actions.act_window',
+                'context': '{patient:' + str(self.patient.id) + '}'
+        }
+        '''
         prescription_obj = self.env["oeh.medical.prescription"]
         prescription_line_obj = self.env["oeh.medical.prescription.line"]
         prescription_ids = []
@@ -553,28 +585,23 @@ class OeHealthAppointment(models.Model):
         for acc in self:
             # Create Invoice
             if acc.patient:
-                curr_invoice = {
-                    'partner_id': acc.patient.partner_id.id,
-                    'account_id': acc.patient.partner_id.property_account_receivable_id.id,
+                curr_prescription = {
                     'patient': acc.patient.id,
-                    'state': 'draft',
-                    'type':'out_invoice',
-                    'date_invoice':acc.appointment_date,
-                    'origin': "Appointment # : " + acc.name,
+                    'doctor': acc.doctor.id,
+                    'date':acc.appointment_date,
+
                 }
 
-                inv_ids = invoice_obj.create(curr_invoice)
-                inv_id = inv_ids.id
+                prescription_ids = prescription_obj.create(curr_prescription)
+                prescription_id = prescription_id.id
 
-                if inv_ids:
-                    prd_account_id = self._default_account()
-                    # Create Invoice line
-                    curr_invoice_line = {
+                if prescription_id:
+                    curr_prescription_line = {
                         'name':"Consultancy invoice for " + acc.name,
                         'price_unit': acc.doctor.consultancy_price,
                         'quantity': 1,
                         'account_id': prd_account_id,
-                        'invoice_id': inv_id,
+                        'prescription_id': inv_id,
                     }
 
                     inv_line_ids = invoice_line_obj.create(curr_invoice_line)
@@ -587,6 +614,7 @@ class OeHealthAppointment(models.Model):
         action['views'] = [(self.env.ref('account.invoice_form').id, 'form')]
         action['res_id'] = inv_id
         return action
+        '''
         '''
         return {
                 'domain': "[('id','=', " + str(inv_id) + ")]",
@@ -645,6 +673,7 @@ class OeHealthPrescriptions(models.Model):
     info = fields.Text(string='Prescription Notes', readonly=True, states={'Draft': [('readonly', False)]})
     prescription_line = fields.One2many('oeh.medical.prescription.line', 'prescription_id', string='Prescription Lines', readonly=True, states={'Draft': [('readonly', False)]})
     state = fields.Selection(STATES, 'State', readonly=True, default=lambda *a: 'Draft')
+    appointment_id = fields.Many2one('oeh.medical.appointment')
 
     @api.model
     def create(self, vals):
