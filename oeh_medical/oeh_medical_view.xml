@@ -205,14 +205,14 @@
                             </group>
                             <notebook>
                                 <page string="Prescription Lines">
-                                    <field name="prescription_line">
+                                    <field name="prescription_line" context="{'default_patient':patient}">
                                         <form string="Prescription Lines">
                                             <group>
                                                 <group>
                                                     <field name="name"/>
                                                     <field name="dose_form"/>
                                                     <field name="start_treatment"/>
-                                                    <field name="patient" domain="[('id', '=', parent.patient)]" required="1"/>
+                                                    <field name="patient" domain="[('id', '=', parent.patient)]" required="1" />
                                                 </group>
                                                 <group>
                                                     <field name="indication"/>

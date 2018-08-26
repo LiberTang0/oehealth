@@ -209,19 +209,6 @@ class OeHealthPatient(models.Model):
                 name = record.name
             result.append((record.id, name))
         return result
-    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
-        if not args:
-            args = []
-        if context is None:
-            context = {}
-        ids = []
-        for record in self:
-            mobile = record.partner_id.mobile
-        if mobile:
-            ids = self.search(cr, user, ['|',('partner_id.mobile','=',mobile),('name','=',name)] + args, limit=limit, context=context)
-        if not ids:
-            ids = self.search(cr, user, [('name',operator,name)] + args, limit=limit, context=context)
-        return self.name_get(cr, user, ids, context)
 
     @api.multi
     def onchange_state(self, state_id):
