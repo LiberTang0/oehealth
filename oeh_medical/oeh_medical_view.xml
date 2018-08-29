@@ -31,8 +31,12 @@
                             <field name="institution" string="Health Center" select="1"/>
                         <newline/>
                         <group expand="0" string="Group By..." colspan="11" col="11">
+                          <filter string="Current Month" name="current_month"
+                            domain="[('appointment_date','&lt;',(context_today()+relativedelta(months=1)).strftime('%%Y-%%m-01')),
+                            ('appointment_date','&gt;=',time.strftime('%%Y-%%m-01'))]"/>
                             <filter string="Patient" context="{'group_by':'patient'}"/>
                             <filter string="Doctor" context="{'group_by':'doctor'}"/>
+                            <filter string="Service" context="{'group_by':'appointment_service_id'}"/>
                             <filter string="Health Center" context="{'group_by':'institution'}"/>
                             <filter string="Urgency" context="{'group_by':'urgency_level'}"/>
                             <filter string="Status" context="{'group_by':'patient_status'}"/>
@@ -66,14 +70,16 @@
                     <header>
                         <button confirm="Are you sure you want to mark appointment as completed?" name="set_to_completed" states="Scheduled" string="Mark as Completed" type="object" class="oe_highlight" groups="oehealth.group_oeh_medical_physician,oehealth.group_oeh_medical_manager"/>
                         <button confirm="Are you sure you want to create the invoice?"
-                          name="action_appointment_invoice_create" string="Consultancy Invoice" type="object" class="oe_highlight" groups="oehealth.group_oeh_medical_physician,oehealth.group_oeh_medical_manager" attrs="{'invisible':[('invoiced','=',True)]}"/>
+                          name="action_appointment_invoice_create" string="Create Invoice" type="object" class="oe_highlight" groups="oehealth.group_oeh_medical_physician,oehealth.group_oeh_medical_manager" attrs="{'invisible':[('invoiced','=',True)]}"/>
                         <button confirm="Are you sure you want to add a Prescription?"
                             name="%(oeh_medical_prescription_action_form)d"
                             string="Create Prescription"
                             type="action" class="oe_highlight"
                             groups="oehealth.group_oeh_medical_physician,oehealth.group_oeh_medical_manager"
-                            states="Completed"
-                            context="{'default_patient':patient,'default_doctor':doctor,'default_info':comments,'default_appointment_id':active_id}"/>
+                            context="{'default_patient':patient,'default_doctor':doctor,'default_info':comments,'default_appointment_id':active_id}"
+                             attrs="{
+                            'invisible': [('prescription_id', '!=', [])]
+                            }"/>
                         <field name="state" widget="statusbar" statusbar_visible="Scheduled,Completed" statusbar_colors='{"Scheduled":"blue","Completed":"green"}' />
                     </header>
                     <sheet>
@@ -100,13 +106,16 @@
                                 <field name="doctor" options="{'no_create': True}"/>
                                 <field name="appointment_date"/>
                                 <field name="patient_status"/>
+                                <field name="prescription_id" invisible="1"/>
                                 <field name="appointment_end" invisible="1"/>
                                 <field name="invoiced" invisible="1"/>
+                                <field name="appointment_service_id"/>
                             </group>
                             <group>
                                 <field name="institution" options="{'no_create': True}"/>
                                 <field name="duration"/>
                                 <field name="urgency_level"/>
+
                             </group>
                         </group>
                         <notebook>
@@ -140,8 +149,9 @@
                             <field name="institution"></field>
                             <field name="patient_status"></field>
                             <field name="urgency_level"></field>
-                            <field name="amount"></field>
-                            <field name="residual"></field>
+                            <field name="appointment_service_id"/>
+                            <field name="amount" sum='Total Amount'></field>
+                            <field name="residual" sum='Total Due'></field>
                             <field name="currency_id" invisible="1"/>
                             <field name="invoiced"/>
                             <field name="state"/>

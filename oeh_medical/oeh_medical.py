@@ -353,11 +353,17 @@ class OeHealthPhysicianLine(models.Model):
     physician_id = fields.Many2one('oeh.medical.physician', string='Physician', index=True, ondelete='cascade')
 
 # Appointment Management
+class AppointmentService(models.Model):
+    _name = 'appointment.service'
+
+    name = fields.Char(string="Description")
+    price = fields.Float(string='Price')
 
 class OeHealthAppointment(models.Model):
     _name = 'oeh.medical.appointment'
     _description = 'Appointment'
     _inherit = ['mail.thread', 'ir.needaction_mixin']
+    appointment_service_id = fields.Many2one('appointment.service', string='Appointment Service', ondelete='restrict',required=True)
 
     URGENCY_LEVEL = [
                 ('Normal', 'Normal'),
@@ -413,7 +419,9 @@ class OeHealthAppointment(models.Model):
     patient_status = fields.Selection(PATIENT_STATUS, string='Patient Status', readonly=True, states={'Scheduled': [('readonly', False)]}, default=lambda *a: 'Inpatient')
     state = fields.Selection(APPOINTMENT_STATUS, string='State', readonly=True, default=lambda *a: 'Scheduled')
     invoiced = fields.Boolean(string='Invoiced',default=False)
+    prescribed = fields.Boolean(string='Prescribed',default=False)
     invoice_id = fields.Many2one('account.invoice')
+    prescription_id = fields.One2many('oeh.medical.prescription', 'appointment_id', string='Prescription', readonly=True)
 
     currency_id = fields.Many2one('res.currency', string='Currency', related='invoice_id.currency_id')
     amount = fields.Monetary(string="Total ", related='invoice_id.amount_total')
@@ -511,7 +519,7 @@ class OeHealthAppointment(models.Model):
                     # Create Invoice line
                     curr_invoice_line = {
                         'name':"Consultancy invoice for " + acc.name,
-                        'price_unit': acc.doctor.consultancy_price,
+                        'price_unit': acc.appointment_service_id.price,
                         'quantity': 1,
                         'account_id': prd_account_id,
                         'invoice_id': inv_id,
