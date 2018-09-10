@@ -363,7 +363,7 @@ class OeHealthAppointment(models.Model):
     _name = 'oeh.medical.appointment'
     _description = 'Appointment'
     _inherit = ['mail.thread', 'ir.needaction_mixin']
-    appointment_service_id = fields.Many2one('appointment.service', string='Appointment Service', ondelete='restrict',required=True)
+    appointment_service_id  = fields.Many2one('product.product',string="Service",domain=[('type', '=', 'service')] )
 
     URGENCY_LEVEL = [
                 ('Normal', 'Normal'),
@@ -412,7 +412,7 @@ class OeHealthAppointment(models.Model):
     doctor = fields.Many2one('oeh.medical.physician', string='Physician', help="Current primary care / family doctor", domain=[('is_pharmacist','=',False)], required=True, readonly=True,states={'Scheduled': [('readonly', False)]}, default=_get_physician)
     appointment_date = fields.Datetime(string='Appointment Date', required=True, readonly=True,states={'Scheduled': [('readonly', False)]}, default=datetime.datetime.now())
     appointment_end = fields.Datetime(compute=_get_appointment_end, string='Appointment End Date', readonly=True, states={'Scheduled': [('readonly', False)]})
-    duration = fields.Integer(string='Duration (Hours)', readonly=True, states={'Scheduled': [('readonly', False)]}, default=lambda *a: 1)
+    duration = fields.Integer(string='Duration (Hours)', default=lambda *a: 1)
     institution = fields.Many2one('oeh.medical.health.center', string='Health Center', help="Medical Center", readonly=True, states={'Scheduled': [('readonly', False)]})
     urgency_level = fields.Selection(URGENCY_LEVEL, string='Urgency Level', readonly=True, states={'Scheduled': [('readonly', False)]}, default=lambda *a: 'Normal')
     comments = fields.Text(string='Comments', readonly=True, states={'Scheduled': [('readonly', False)]})
@@ -519,7 +519,7 @@ class OeHealthAppointment(models.Model):
                     # Create Invoice line
                     curr_invoice_line = {
                         'name':"Consultancy invoice for " + acc.name,
-                        'price_unit': acc.appointment_service_id.price,
+                        'price_unit': acc.appointment_service_id.product_tmpl_id.lst_price,
                         'quantity': 1,
                         'account_id': prd_account_id,
                         'invoice_id': inv_id,
