@@ -1,0 +1,129 @@
+<odoo>
+  <data>
+    <report
+        id="action_phycision_service_report"
+        name="oehealth.phycision_service_report"
+        file="oehealth.phycision_service_report"
+        model="report.oehealth.phycision_service_report"
+        string="Physician service report"
+        report_type="qweb-html"
+        />
+
+    <template id="phycision_service_report">
+      <t t-call="report.html_container">
+          <t t-foreach="docs" t-as="doc">
+              <t t-call="report.external_layout">
+                  <div class="page">
+                      <div class="row">
+                        <div class="col-md-12">
+                              <h4>Doctor: <span t-field="doc.physician_id"/></h4>
+                              <h5><span t-field="doc.date_from"/> - <span t-field="doc.date_to"/></h5>
+                              <hr/>
+                              <table class="table table-bordered" style="font-size:12px;">
+
+                                <thead>
+                                      <tr style="background-color:#ff704d">
+                                          <td class="text-left"><strong>Date</strong></td>
+                                          <td class="text-left"><strong>Ref</strong></td>
+                                          <td class="text-left"><strong>Patient</strong></td>
+                                          <td class="text-left"><strong>Service</strong></td>
+                                          <td class="text-left"><strong>Total</strong></td>
+                                          <td class="text-center"><strong>Balance</strong></td>
+
+                                      </tr>
+                                </thead>
+
+                                <tbody>
+                                  <t t-set = "customer_id" t-value = "0"/>
+                                  <t t-set = "total" t-value = "0"/>
+                                  <t t-set = "total_residual" t-value = "0"/>
+                                  <t t-set = "overall_total" t-value = "0"/>
+                                  <t t-set = "overall_total_residual" t-value = "0"/>
+                                  <t t-set = "service_id" t-value = "0"/>
+
+                                  <t t-foreach="data" t-as="invoice_line">
+                                    <t t-if="service_id == 0">
+                                      <t t-set = "service_id" t-value = "invoice_line.appointment_service_id.id"/>
+
+                                    </t>
+                                    <t t-if="invoice_line.appointment_service_id.id != service_id">
+                                      <tr>
+                                          <td></td>
+                                          <td></td>
+                                          <td></td>
+                                          <td></td>
+                                          <td  class="text-right">Total: <b><span t-esc="total"/></b></td>
+                                          <td  class="text-right"><b><span t-esc="total_residual"/></b></td>
+                                      </tr>
+                                      <t t-set = "total" t-value = "0"/>
+                                      <t t-set = "total_residual" t-value = "0"/>
+                                    </t>
+
+
+
+                                      <tr>
+
+                                          <td><span t-field="invoice_line.appointment_date"/></td>
+                                          <td><span t-field="invoice_line.name"/></td>
+                                          <td><span t-field="invoice_line.patient.name"/></td>
+                                          <td><span t-field="invoice_line.appointment_service_id.name"/></td>
+                                          <td class="text-right"><span t-field="invoice_line.invoice_id.amount_total"/></td>
+                                          <td class="text-right"><span t-field="invoice_line.invoice_id.residual"/></td>
+
+
+                                      </tr>
+
+
+                                      <t t-set = "total" t-value = "total + invoice_line.invoice_id.amount_total"/>
+                                      <t t-set = "total_residual" t-value = "total_residual + invoice_line.invoice_id.residual"/>
+
+                                      <t t-set = "overall_total" t-value = "overall_total + invoice_line.invoice_id.amount_total"/>
+                                      <t t-set = "overall_total_residual" t-value = "overall_total_residual + invoice_line.invoice_id.residual"/>
+
+
+                                      <t t-set = "service_id" t-value = "invoice_line.appointment_service_id.id"/>
+
+                                  </t>
+                                  <tr>
+                                      <td></td>
+                                      <td></td>
+                                      <td></td>
+                                      <td></td>
+                                      <td  class="text-right">Total: <b><span t-esc="total"/></b></td>
+                                      <td  class="text-right"><b><span t-esc="total_residual"/></b></td>
+                                  </tr>
+                                  <tr>
+                                      <td></td>
+                                      <td></td>
+                                      <td></td>
+                                      <td></td>
+                                      <td  class="text-right">Total: <b><span t-esc="overall_total"/></b></td>
+                                      <td  class="text-right">Total Balance: <b><span t-esc="overall_total_residual"/></b></td>
+
+
+                                  </tr>
+
+
+                                </tbody>
+
+
+
+                              </table>
+                              <!--<div class="table-responsive">-->
+
+                        </div>
+
+                          <!--</div>-->
+
+                      </div>
+                  </div>
+              </t>
+          </t>
+      </t>
+
+    </template>
+
+  </data>
+
+
+</odoo>

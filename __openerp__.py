@@ -45,7 +45,7 @@ Allow your doctors and patients to login inside your oeHealth system to manage t
         'oeh_medical/data/oeh_physician_degrees.xml',
         'oeh_medical/data/oeh_insurance_types.xml',
         'oeh_medical/data/oeh_ethnic_groups.xml',
-        'oeh_medical/data/oeh_who_medicaments.xml',
+
         'oeh_medical/data/oeh_dose_units.xml',
         'oeh_medical/data/oeh_drug_administration_routes.xml',
         'oeh_medical/data/oeh_drug_form.xml',
@@ -69,7 +69,7 @@ Allow your doctors and patients to login inside your oeHealth system to manage t
         'oeh_lab/data/oeh_lab_test_types.xml',
         'oeh_lab/views/report_patient_labtest.xml',
         'oeh_lab/oeh_medical_lab_report.xml',
-        
+
         'oeh_medical/data/oeh_disease_categories.xml',
         'oeh_medical/data/oeh_diseases.xml',
 
@@ -77,6 +77,8 @@ Allow your doctors and patients to login inside your oeHealth system to manage t
         'security/ir.model.access.csv',
         'security/ir.rule.xml',
         'views/oehealth.xml',
+        'wizards/physician_service_wizard.xml',
+        'views/phycision_service_report.xml',
     ],
     "images": ['images/main_screenshot.png'],
     "demo": [

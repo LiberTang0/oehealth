@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<record id="physician_service_report_view" model="ir.ui.view">
+        <field name="name">Physician Service report</field>
+        <field name="model">oeh.phycision_service_report.wizard</field>
+        <field name="arch" type="xml">
+        	<form>
+						<group>
+	        		<group>
+								<field name="date_from" />
+								<field name="date_to" />
+
+	        		</group>
+							<group>
+	        			<field name="physician_id" />
+	        		</group>
+        		</group>
+        		<footer>
+	                <button name="check_report" string="Print" type="object" default_focus="1" class="oe_highlight" />
+	                -
+	                <button string="Cancel" class="oe_link" special="cancel" />
+	            </footer>
+			</form>
+        </field>
+    </record>
+
+	<record id="action_physician_service_report_wizard" model="ir.actions.act_window">
+        <field name="name">Physician Service report</field>
+        <field name="res_model">oeh.phycision_service_report.wizard</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="physician_service_report_view"/>
+        <field name="target">new</field>
+    </record>
+    <menuitem
+			name="Physician Service Report"
+			id="physician_service_report"
+			parent="oeh_medical_appointment_menu"
+			action="action_physician_service_report_wizard"
+			/>
+
+
+</odoo>
