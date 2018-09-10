@@ -856,3 +856,58 @@ class OeHealthVaccines(models.Model):
                 dose = 1
             return {'value': {'dose': dose}}
         return {'value': {}}
+class ReportPhysicianService(models.AbstractModel):
+    _name = "report.oehealth.phycision_service_report"
+
+
+    @api.model
+    def render_html(self, docids, data=None):
+        self.model = self.env.context.get('active_model')
+        docs = self.env[self.model].browse(self.env.context.get('active_id'))
+        '''
+        if docs.physicians:
+            physicians=self.env['product.product'].search([('categ_id', '=', docs.category_id.id)]).ids
+        else:
+            physicians=self.env['product.product'].search([]).ids
+        '''
+
+
+
+        #report_obj = self.env['report']
+        #report = report_obj._get_report_from_name('kalkaal_logistics.report_manifest_template')
+        appointments = self.env['oeh.medical.appointment'].search(
+        [
+        ('doctor', '=', docs.physician_id.id),
+        ('appointment_date', '>=', docs.date_from),
+        ('appointment_date', '<=', docs.date_to),
+        ],order="appointment_service_id desc")
+        #orders = self.env['sale.order'].search([('shipment_id', '=', docs.shipment_id.id)])
+        report_obj = self.env['report']
+        report = report_obj._get_report_from_name('oehealth.phycision_service_report')
+
+        docargs = {
+            'doc_ids': self.ids,
+            'doc_model': report.model,
+            'docs': docs,
+            'data':appointments,
+        }
+        return report_obj.render('oehealth.phycision_service_report', docargs)
+class PhysicianServiceReportWizard(models.TransientModel):
+    _name = "oeh.phycision_service_report.wizard"
+    _description = "Physician service report"
+    physician_id = fields.Many2one('oeh.medical.physician', string='Physician',
+    help="Current primary care physician / family doctor",
+    domain=[('is_pharmacist','=',False)]
+    ,required=True)
+    date_from = fields.Datetime(string='From', required=True)
+    date_to = fields.Datetime(string='To', required=True)
+
+    @api.multi
+    def check_report(self):
+        data = {}
+        data['form'] = self.read(['physician_id','date_from','date_to'])[0]
+        return self._print_report(data)
+
+    def _print_report(self, data):
+        data['form'].update(self.read(['physician_id','date_from','date_to'])[0])
+        return self.env['report'].get_action(self, 'oehealth.phycision_service_report', data=data)
