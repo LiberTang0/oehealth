@@ -76,11 +76,8 @@
 
                                       <t t-set = "total" t-value = "total + invoice_line.invoice_id.amount_total"/>
                                       <t t-set = "total_residual" t-value = "total_residual + invoice_line.invoice_id.residual"/>
-
                                       <t t-set = "overall_total" t-value = "overall_total + invoice_line.invoice_id.amount_total"/>
                                       <t t-set = "overall_total_residual" t-value = "overall_total_residual + invoice_line.invoice_id.residual"/>
-
-
                                       <t t-set = "service_id" t-value = "invoice_line.appointment_service_id.id"/>
 
                                   </t>
